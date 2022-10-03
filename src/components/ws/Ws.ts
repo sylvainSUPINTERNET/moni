@@ -1,18 +1,17 @@
 let instance: any;
 
 
-interface WsType {
-    test: "HISTORY"
+
+interface Ws {
+
 }
 
-interface IWsManager<T> {
-    onOpen: <Type>(type: T) => void;
-    onMessage: <Type>(type: T, message: any) => void;
-    // onClose: (type: T) => void;
-    // onError: (type: T, error: any) => void;
-}   
+interface WsHistory extends Ws {
+    name: "HISTORY"
+}
 
-class WsManager <T> implements IWsManager<T>  {
+
+class WsManager{
     _ws: WebSocket;
 
     constructor() {
@@ -26,19 +25,20 @@ class WsManager <T> implements IWsManager<T>  {
         this._ws.onclose = this.onclose;
         this._ws.onerror = this.onerror;
     }
-    onMessage (type: T, message: any): void  {
 
-    }
-    onOpen<Type>(type: T): void {
+    onOpen<Type>(type: Type): void {
         console.log(`Open connection for ${type}`);
     }
     
     
     onopen(event:Event): void {
-        this.onOpen();
+        // this.onOpen<WsHistory>({name: "HISTORY"});
+        // TODO ici, il faut définir une interface par type d'event
+        // et l'utilisaer comme type
+        // this.onOpen<string>("ok");
     }
     onmessage(event:MessageEvent): void {
-        this.onMessage(this.type, event.data);
+        // this.onMessage(this.type, event.data);
     }
     onclose(event:CloseEvent): void {
         throw new Error("Method not implemented.");
