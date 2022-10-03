@@ -1,56 +1,74 @@
 import { useEffect, useState } from "react"
 
 function HistoryBattle() {
-
     // https://www.digitalocean.com/community/tutorials/how-to-handle-async-data-loading-lazy-loading-and-code-splitting-with-react
     // https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/
 
-    let [queueHistory, setQueueHistory] = useState<Array<any>>([])
-    
+    let [queueHistory, setQueueHistory] = useState<Array<any>>([]);
+
     useEffect( () => {
         fetch("https://jsonplaceholder.typicode.com/comments")
         .then( response => response.json() )
         .then( data => {
-            setQueueHistory(data)
-        })
+            let mock = [
+                {
+                    id: 1
+                },
+                {
+                    id: 2
+                },
+                {
+                    id: 3
+                },
+                {
+                    id: 4
+                },
+                {
+                    id: 5
+                },
+                {
+                    id: 6
+                }
+            ]
+            let arr = [...mock];
+            setQueueHistory(arr);
+        });
     }, [])
 
     return (
-      <div className="flex h-screen">
-        <p>Hitory battle</p> 
-        <HistoryQueue historyData={queueHistory}></HistoryQueue>
+      <div className="container mx-auto">
+        <div className="mt-10">
+            <p className="mt-10 mb-10">Hitory battle</p> 
+            <HistoryQueue historyData={queueHistory}></HistoryQueue>
+        </div>
       </div>
     )
   }
   
 
 
-  /**
-   * @param param0 
-   * @returns 
-   */
 function HistoryQueue ({historyData}: any) {
-    console.log(historyData)
-
     return ( 
-        <div>  
-            {
-                historyData && historyData.map( (item:any, index:number) => {
-                    <p>{item.name}</p>
-                })
-            }
+        <div className="flex flex-wrap bg-gray-200 space-x-0.5">
+         {
+            historyData.slice(0,5).map( (item: any) => {
+                return <div className="flex-1">
+                    <div className="text-white text-center bg-blue-600 py-2 border-2 border-sky-500">{item.id}</div>
+                </div>
+            })
+         }
 
         </div>
     )
 }
 
 
-export declare interface IHistoryQueue {
-    id: number;
-    name: string;
-    email: string;
-    body: string;
-}
+// export declare interface IHistoryQueue {
+//     id: number;
+//     name: string;
+//     email: string;
+//     body: string;
+// }
 
 
 export default HistoryBattle
