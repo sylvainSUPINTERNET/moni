@@ -1,50 +1,37 @@
+import { WS_URL } from "../../config/ws.connections";
+import { WsEventsManager } from "./WsEventsManager";
+
 let instance: any;
 
+// https://blog.postman.com/introducing-postman-websocket-echo-service/ ( URL for server )
 
-
-interface Ws {
-
-}
-
-interface WsHistory extends Ws {
-    name: "HISTORY"
-}
-
-
-class WsManager{
+class WsManager extends WsEventsManager {
     _ws: WebSocket;
 
     constructor() {
+        super();
         if ( instance ) {
             throw Error("WsManager is a singleton");
         }
         instance = this;
-        this._ws = new WebSocket("ws://localhost:8080/ws");
+        this._ws = new WebSocket(`${WS_URL}`);
         this._ws.onopen = this.onopen;
         this._ws.onmessage = this.onmessage;
         this._ws.onclose = this.onclose;
         this._ws.onerror = this.onerror;
     }
 
-    onOpen<Type>(type: Type): void {
-        console.log(`Open connection for ${type}`);
-    }
-    
-    
     onopen(event:Event): void {
-        // this.onOpen<WsHistory>({name: "HISTORY"});
-        // TODO ici, il faut définir une interface par type d'event
-        // et l'utilisaer comme type
-        // this.onOpen<string>("ok");
+        console.log("Open new connection")
     }
     onmessage(event:MessageEvent): void {
-        // this.onMessage(this.type, event.data);
+        this.dispatch(event);
     }
     onclose(event:CloseEvent): void {
-        throw new Error("Method not implemented.");
+        console.log("Close connection")
     }
     onerror(event:Event): void {
-        throw new Error("Method not implemented.");
+        console.log("ERR connection")
     }
 
 }
