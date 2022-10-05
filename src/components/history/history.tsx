@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react"
+import { IHistoryService } from "../ws/Type";
+import getInstanceWs from "../ws/WsInstance";
 
 function HistoryBattle() {
     // https://www.digitalocean.com/community/tutorials/how-to-handle-async-data-loading-lazy-loading-and-code-splitting-with-react
@@ -48,6 +50,9 @@ function HistoryBattle() {
 
 
 function HistoryQueue ({historyData}: any) {
+    const wsForService:IHistoryService = {id:"HISTORY_SERVICE"};    
+    let [wsInstance, setWsInstance] = useState<any>(getInstanceWs(wsForService));
+
     return ( 
         <div className="flex flex-wrap bg-gray-200 space-x-0.5">
          {
