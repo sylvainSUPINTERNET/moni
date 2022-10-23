@@ -1,19 +1,50 @@
 import { useEffect, useState } from "react"
 import { Subject, Subscription } from "rxjs";
 import { IHistoryService } from "../ws/Type";
-import {getInstanceWs, sendWsMessage} from "../ws/WsInstance";
+import {getInstanceWs, sendWsMessage, testWs} from "../ws/WsInstance";
 import * as signalR from "@microsoft/signalr"
+import { WS_URL_HISTORY_SIGNALR } from "../../config/ws.connections";
 
 const worker = new Worker("ws-workers.js")
 worker.postMessage("start woky")
 
+
+interface IHistoryData {
+    timestamp: number;
+    winnerUserName: string;
+    productName:string;
+    price: number;
+}
+
 function HistoryBattle() {
+    console.log("History battle")
     // https://www.digitalocean.com/community/tutorials/how-to-handle-async-data-loading-lazy-loading-and-code-splitting-with-react
     // https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/
-
     let [queueHistory, setQueueHistory] = useState<Array<any>>([]);
 
+    let [historyWsConn, setHistoryWsConn] = useState<signalR.HubConnection>();
+
     useEffect( () => {
+
+        let connection:signalR.HubConnection;
+        try {
+            connection = new signalR.HubConnectionBuilder()
+            // .configureLogging(signalR.LogLevel.Information)
+            .withUrl(WS_URL_HISTORY_SIGNALR, {})
+            .build();
+    
+            connection
+                .start()
+                .then( () => {
+                    setHistoryWsConn(connection);
+                })
+                .catch((err:any) => { console.log(err) } )
+        
+        } catch ( e ) {
+            console.log(e)
+        }
+
+
         fetch("https://jsonplaceholder.typicode.com/comments")
         .then( response => response.json() )
         .then( data => {
@@ -40,6 +71,17 @@ function HistoryBattle() {
             let arr = [...mock];
             setQueueHistory(arr);
         });
+
+        // cleanup
+        return () => {
+            try {
+                connection.stop()
+            } catch ( err ) {
+                console.log(err)
+            }
+        }
+
+
     }, [])
 
     return (
@@ -47,38 +89,25 @@ function HistoryBattle() {
         <div className="mt-10">
             <p className="mt-10 mb-10">Hitory battle</p> 
             {/* <HistoryQueue historyData={queueHistory}></HistoryQueue> */}
-            <HistoryQueueSignalR historyData={queueHistory}></HistoryQueueSignalR>
+            <HistoryQueueSignalR historyData={queueHistory} historyWsConn={historyWsConn}></HistoryQueueSignalR>
         </div>
       </div>
     )
   }
   
 
-const wsConnection = async () => {
-    let connection = new signalR.HubConnectionBuilder()
-    // .configureLogging(signalR.LogLevel.Information)
-    .withUrl("https://localhost:5001/ws", {})
-    .build();
-
-    let ws = await connection.start();
-
-    ws.on("ReceiveMessage", (message) => {
-        console.log(message)
-    });
-
-}
-
-function HistoryQueueSignalR ({historyData}:any):any {
-    var connection = new signalR.HubConnectionBuilder()
-    .configureLogging(signalR.LogLevel.Debug)
-    .withUrl("http://localhost:5136/historyhub", {
-    }).build();
+function HistoryQueueSignalR ({historyData, historyWsConn}:{historyData:any, historyWsConn:signalR.HubConnection | undefined}):any {
+    let [arr, setArr] = useState<Array<IHistoryData>>([]);
     
-    connection.start().then(function () {
-        console.log("START")
-    }).catch(function (err) {
-        return console.error(err.toString());
-    });
+    useEffect( () => {
+        if ( historyWsConn ) {
+            historyWsConn.on("NewHistoryEvent", (historyData:IHistoryData) => {
+                console.log("NW HISTORY", historyData.winnerUserName)
+                setArr([...arr, historyData])
+            });
+        }
+    })
+
     return ( 
         <div className="flex flex-wrap bg-gray-200 space-x-0.5">
          {

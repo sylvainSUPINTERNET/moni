@@ -2,6 +2,7 @@ import { Subject } from "rxjs";
 import { WS_URL } from "../../config/ws.connections";
 import { IService } from "./Type";
 import { dispatcherEvent } from "./WsActions";
+import * as signalR from "@microsoft/signalr"
 
 const wsInstance = {
      ws: new WebSocket(WS_URL),
@@ -29,6 +30,19 @@ export let getInstanceWs = (service: IService, subject:Subject<any>) => {
     }
 }
 
+
+export const testWs = async () => {
+    let connection = new signalR.HubConnectionBuilder()
+    // .configureLogging(signalR.LogLevel.Information)
+    .withUrl("http://localhost:5136/historyhub", {})
+    .build();
+
+    await connection.start();
+    connection.on('ReceiveMessage', (message: string) => {
+        console.log(message);
+    });
+    return connection;
+}
 
 export let sendWsMessage = (msg:any) => {
     try {
