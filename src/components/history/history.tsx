@@ -54,10 +54,26 @@ function HistoryBattle() {
   }
   
 
+const wsConnection = async () => {
+    let connection = new signalR.HubConnectionBuilder()
+    // .configureLogging(signalR.LogLevel.Information)
+    .withUrl("https://localhost:5001/ws", {})
+    .build();
+
+    let ws = await connection.start();
+
+    ws.on("ReceiveMessage", (message) => {
+        console.log(message)
+    });
+
+}
+
 function HistoryQueueSignalR ({historyData}:any):any {
     var connection = new signalR.HubConnectionBuilder()
     .configureLogging(signalR.LogLevel.Debug)
-    .withUrl("http://localhost:5136/historyhub").build();
+    .withUrl("http://localhost:5136/historyhub", {
+    }).build();
+    
     connection.start().then(function () {
         console.log("START")
     }).catch(function (err) {
