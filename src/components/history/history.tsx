@@ -51,16 +51,15 @@ function HistoryBattle() {
   }
   
 
+
 function HistoryQueueSignalR ():any {
     const [history, setHistory] = useState<IHistoryData[]>([]);
 
-    let sb = wsSubject.subscribe( (data:any) => {
-        console.log(data);
-        setHistory([...history, data]);
-    })
-
     useEffect( () => {
-        
+        let sb = wsSubject.subscribe( (data:any) => {
+            setHistory([...history, data]);
+        })
+    
         // TODO call real API to get history current ( redis )
 
         return () => { 
