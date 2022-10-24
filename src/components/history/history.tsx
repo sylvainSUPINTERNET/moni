@@ -56,9 +56,11 @@ function HistoryQueueSignalR ():any {
     const [history, setHistory] = useState<IHistoryData[]>([]);
 
     useEffect( () => {
+
         let sb = wsSubject.subscribe( (data:any) => {
-            setHistory([...history, data]);
-        })
+            if ( history.length >= 5) history.pop();
+            setHistory([data,...history]);
+        });
     
         // TODO call real API to get history current ( redis )
 
@@ -70,9 +72,9 @@ function HistoryQueueSignalR ():any {
     return ( 
         <div className="flex flex-wrap bg-gray-200 space-x-0.5">
          {
-            history.slice(0,5).map( (item: any, i:number) => {
+            history.slice(0,5).map( (item: IHistoryData, i:number) => {
                 return <div className="flex-1">
-                    <div id={`${i}`} className="text-white text-center bg-blue-600 py-2 border-2 border-sky-500">{item.id}</div>
+                    <div id={`${i}`} className="text-white text-center bg-blue-600 py-2 border-2 border-sky-500">{item.timestamp}</div>
                 </div>
             })
          }
