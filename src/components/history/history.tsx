@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react"
-import { Subject, Subscription } from "rxjs";
-import { IHistoryService } from "../ws/Type";
-import {getInstanceWs, sendWsMessage, testWs} from "../ws/WsInstance";
+import { BehaviorSubject, Subject, Subscription } from "rxjs";
 import * as signalR from "@microsoft/signalr"
-import { WS_URL_HISTORY_SIGNALR } from "../../config/ws.connections";
+import { config } from "../../config/api";
 const worker = new Worker("ws-workers.js")
 worker.postMessage("start woky")
 
@@ -18,7 +16,7 @@ interface IHistoryData {
 // Avoid to create multiple listener / connection ( out of component and reredenring )
 let wsSubject = new Subject<IHistoryData>();
 const ws:any  = {
-    instance: new signalR.HubConnectionBuilder().withUrl(WS_URL_HISTORY_SIGNALR, {}).build(),
+    instance: new signalR.HubConnectionBuilder().withUrl(config.historyService.wsUrl, {}).build(),
     currentInstance: undefined
 }
 
@@ -54,24 +52,50 @@ function HistoryBattle() {
 
 function HistoryQueueSignalR ():any {
     const [history, setHistory] = useState<IHistoryData[]>([]);
+    const abortController = new AbortController();
+
+    const reactiveHistory = new BehaviorSubject<IHistoryData[]>([]);
+
+    let fetchHistoryWins = async (): Promise<void> => {
+        try {
+
+            const res = await fetch(config.historyService.url, { signal: abortController.signal } );
+
+            if ( res.status === 200 ) {
+                setHistory(await res.json()); 
+                reactiveHistory.next(history)
+                return;
+            }
+            // TODO: remove alert and replace with cool modal !
+            alert("Error while fetching history wins");
+
+        } catch ( e ) {
+            alert(e)
+        }
+    }
 
     useEffect( () => {
 
+        fetchHistoryWins();
+
         let sb = wsSubject.subscribe( (data:any) => {
+            console.log("History ?", history)
             if ( history.length >= 5) history.pop();
+
+            reactiveHistory.subscribe( data => console.log("data", data));
             setHistory([data,...history]);
         });
-    
-        // TODO call real API to get history current ( redis )
+
 
         return () => { 
             sb.unsubscribe();
         }
-    })
+    }, [])
 
     return ( 
         <div className="flex flex-wrap bg-gray-200 space-x-0.5">
          {
+            
             history.slice(0,5).map( (item: IHistoryData, i:number) => {
                 return <div className="flex-1">
                     <div id={`${i}`} className="text-white text-center bg-blue-600 py-2 border-2 border-sky-500">{item.timestamp}</div>
