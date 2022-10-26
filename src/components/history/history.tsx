@@ -54,8 +54,6 @@ function HistoryQueueSignalR ():any {
     const [history, setHistory] = useState<IHistoryData[]>([]);
     const abortController = new AbortController();
 
-    const reactiveHistory = new BehaviorSubject<IHistoryData[]>([]);
-
     let fetchHistoryWins = async (): Promise<void> => {
         try {
 
@@ -63,7 +61,6 @@ function HistoryQueueSignalR ():any {
 
             if ( res.status === 200 ) {
                 setHistory(await res.json()); 
-                reactiveHistory.next(history)
                 return;
             }
             // TODO: remove alert and replace with cool modal !
@@ -74,19 +71,14 @@ function HistoryQueueSignalR ():any {
         }
     }
 
+    const sb = wsSubject.subscribe( (data:any) => {
+        console.log("History ?", history)
+        if ( history.length >= 5) history.pop();
+        setHistory([data,...history]);
+    });
+
     useEffect( () => {
-
         fetchHistoryWins();
-
-        let sb = wsSubject.subscribe( (data:any) => {
-            console.log("History ?", history)
-            if ( history.length >= 5) history.pop();
-
-            reactiveHistory.subscribe( data => console.log("data", data));
-            setHistory([data,...history]);
-        });
-
-
         return () => { 
             sb.unsubscribe();
         }
@@ -98,6 +90,7 @@ function HistoryQueueSignalR ():any {
             
             history.slice(0,5).map( (item: IHistoryData, i:number) => {
                 return <div className="flex-1">
+                    
                     <div id={`${i}`} className="text-white text-center bg-blue-600 py-2 border-2 border-sky-500">{item.timestamp}</div>
                 </div>
             })
@@ -105,6 +98,7 @@ function HistoryQueueSignalR ():any {
         </div>
     )
 }
+
 
 
 // function HistoryQueue ({historyData}: any) {
