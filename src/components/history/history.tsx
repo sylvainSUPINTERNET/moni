@@ -2,10 +2,6 @@ import { useEffect, useState } from "react"
 import { BehaviorSubject, Subject, Subscription } from "rxjs";
 import * as signalR from "@microsoft/signalr"
 import { config } from "../../config/api";
-const worker = new Worker("ws-workers.js")
-worker.postMessage("start woky")
-
-
 interface IHistoryData {
     timestamp: number;
     winnerUserName: string;
@@ -79,7 +75,6 @@ function HistoryQueueSignalR ():any {
         fetchHistoryWins();
 
         let sb = wsSubject.subscribe( (data:any) => {
-            console.log("History ?", history)
             if ( history.length >= 5) history.pop();
 
             reactiveHistory.subscribe( data => console.log("data", data));
@@ -97,8 +92,8 @@ function HistoryQueueSignalR ():any {
          {
             
             history.slice(0,5).map( (item: IHistoryData, i:number) => {
-                return <div className="flex-1">
-                    <div id={`${i}`} className="text-white text-center bg-blue-600 py-2 border-2 border-sky-500">{item.timestamp}</div>
+                return <div className="flex-1" key={`${i}`}>
+                    <div key={`${i}`} className="text-white text-center bg-blue-600 py-2 border-2 border-sky-500">{item.timestamp}</div>
                 </div>
             })
          }
