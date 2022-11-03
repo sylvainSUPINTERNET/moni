@@ -50,8 +50,6 @@ function HistoryQueueSignalR ():any {
     const [history, setHistory] = useState<IHistoryData[]>([]);
     const abortController = new AbortController();
 
-    const reactiveHistory = new BehaviorSubject<IHistoryData[]>([]);
-
     let fetchHistoryWins = async (): Promise<void> => {
         try {
 
@@ -59,7 +57,6 @@ function HistoryQueueSignalR ():any {
 
             if ( res.status === 200 ) {
                 setHistory(await res.json()); 
-                reactiveHistory.next(history)
                 return;
             }
             // TODO: remove alert and replace with cool modal !
@@ -70,18 +67,13 @@ function HistoryQueueSignalR ():any {
         }
     }
 
+    const sb = wsSubject.subscribe( (data:any) => {
+        if ( history.length >= 5) history.pop();
+        setHistory([data,...history]);
+    });
+
     useEffect( () => {
-
         fetchHistoryWins();
-
-        let sb = wsSubject.subscribe( (data:any) => {
-            if ( history.length >= 5) history.pop();
-
-            reactiveHistory.subscribe( data => console.log("data", data));
-            setHistory([data,...history]);
-        });
-
-
         return () => { 
             sb.unsubscribe();
         }
@@ -89,61 +81,21 @@ function HistoryQueueSignalR ():any {
 
     return ( 
         <div className="flex flex-wrap bg-gray-200 space-x-0.5">
-         {
-            
-            history.slice(0,5).map( (item: IHistoryData, i:number) => {
-                return <div className="flex-1" key={`${i}`}>
-                    <div key={`${i}`} className="text-white text-center bg-blue-600 py-2 border-2 border-sky-500">{item.timestamp}</div>
-                </div>
-            })
-         }
+            {
+                history && history.length > 0 && history.slice(0,5).map( (item: IHistoryData, i:number) => {
+                    return <div className="flex-1" key={i}>
+                        
+                        <div id={`${i}`} className="text-white text-center bg-blue-600 py-2 border-2 border-sky-500">{item.timestamp}</div>
+                    </div>
+                })
+            }
+            {
+                history && history.length <= 0 && <div className="flex-1">Nothing for the moment</div>
+            }
         </div>
     )
 }
 
-
-// function HistoryQueue ({historyData}: any) {
-//     const wsForService:IHistoryService = {id:"HISTORY_SERVICE"};
-//     const subject:Subject<any> = new Subject();
-//     // https://dev.to/bitovi/rxjs-with-react-jek
-//     let [wsInstance, setWsInstance] = useState<any>(getInstanceWs(wsForService, subject));
-
-//     let subscription: Subscription = subject.subscribe( (data:any) => {
-//         console.log("data", data);
-//     });
-
-//     useEffect( () => {
-//         sendWsMessage("yi");
-//         return () => {
-//             console.log("cleanup")
-//             if ( subscription !== null ) {
-//                 subscription.unsubscribe();
-//             }
-//         }
-//     }, [])
-
-
-//     return ( 
-//         <div className="flex flex-wrap bg-gray-200 space-x-0.5">
-//          {
-//             historyData.slice(0,5).map( (item: any, i:number) => {
-//                 return <div className="flex-1">
-//                     <div id={`${i}`} className="text-white text-center bg-blue-600 py-2 border-2 border-sky-500">{item.id}</div>
-//                 </div>
-//             })
-//          }
-
-//         </div>
-//     )
-// }
-
-
-// export declare interface IHistoryQueue {
-//     id: number;
-//     name: string;
-//     email: string;
-//     body: string;
-// }
 
 
 export default HistoryBattle
