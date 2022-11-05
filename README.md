@@ -7,6 +7,18 @@ Get linux terminal on windows ( or use it directly )
 ### Install
 
 
+```` bash 
+
+npm install grpc-web --save
+
+
+# If you use protobuf from google such as timestamp / empty etc it's mandatory ( to be imported by your own .proto)
+
+npm i google-protobuf --save
+
+````
+
+
 __GRPC__
 
 ```` bash
@@ -26,6 +38,9 @@ Whatever the version, just inside get the include directory ( contains google ex
 cp -R protoc/include/ /usr/bin/
 
 ````
+
+You must also copy google-protobuf/google/protobuf to your project /src/proto folder
+
 
 
 __GRPC WEB__ 
@@ -72,3 +87,4 @@ greet_pb.js
 GreetServiceClientPb.ts 
 
 ```` 
+
