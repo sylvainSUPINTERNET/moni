@@ -60,3 +60,15 @@ protoc --js_out=import_style=commonjs,binary:. src/proto/greet.proto --grpc-web_
 
 
 ````
+
+
+You should have 3 files generated at this point : 
+
+
+```` bash
+
+greet_pb.d.ts 
+greet_pb.js 
+GreetServiceClientPb.ts 
+
+```` 
